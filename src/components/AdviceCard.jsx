@@ -1,13 +1,25 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { getAdvice } from "../services/advice";
+import { Icon } from "@iconify/react";
+import bookmarkIcon from "@iconify/icons-mdi/bookmark";
 
-const AdviceCard = () => {
+const AdviceCard = ({ freshAdvice }) => {
   const [spin, setSpin] = useState(false);
-  const [advice, setAdvice] = useState(null);
+  const [advice, setAdvice] = useState({});
+  const [bookmarkedAdvice, setBookmarkedAdvice] = useState([]);
 
   useEffect(() => {
-    getAdvice().then((data) => setAdvice(data?.slip));
+    if (freshAdvice) {
+      setAdvice(freshAdvice);
+    }
+  }, [freshAdvice]);
+
+  useEffect(() => {
+    const savedAdvices = JSON.parse(localStorage.getItem("advices"));
+    if (savedAdvices.length) {
+      setBookmarkedAdvice(savedAdvices);
+    }
   }, []);
 
   const activateSpin = () => {
@@ -19,19 +31,43 @@ const AdviceCard = () => {
   };
 
   const fetchNewAdvice = async () => {
-    console.log(advice);
     activateSpin();
     const newAdvice = await getAdvice();
     deactivateSpin();
-    console.log(advice);
     setAdvice(newAdvice?.slip);
   };
 
+  const bookmarkAdvice = (adv) => {
+    if (adv) {
+      if (bookmarkedAdvice.length) {
+        const newAdvs = bookmarkedAdvice.concat(adv);
+        setBookmarkedAdvice(newAdvs);
+        localStorage.setItem("advices", JSON.stringify(newAdvs));
+      } else {
+        const newAdvs = bookmarkedAdvice.concat(adv);
+        setBookmarkedAdvice(newAdvs);
+        localStorage.setItem("advices", JSON.stringify(newAdvs));
+      }
+    }
+  };
+
+  console.log(bookmarkedAdvice);
+
   return (
-    <div className="w-full min-h-[100px] px-4 md:min-h-[200px]  flex flex-col items-center md:w-2/4 bg-gray-700 rounded-md ">
+    <div className="relative w-full shadow-md  px-4  flex flex-col items-center md:w-2/4 bg-gray-700 rounded-md ">
+      <div className="absolute top-2 right-2 cursor-pointer ">
+        <Icon
+          icon={bookmarkIcon}
+          onClick={() => bookmarkAdvice(advice)}
+          height={24}
+          width={24}
+          color="white"
+          className=""
+        />
+      </div>
       <div className="text-green-400 text-1xl my-4">Advice #{advice?.id}</div>
       <div className="font-bold text-gray-200 text-center ">
-        {advice?.advice || "advice loading..."}
+        "{advice?.advice || "advice loading..."}"
       </div>
       <div className="w-full flex flex-row items-center my-5">
         <div className="h-[1px] w-full bg-gray-500"></div>
@@ -41,11 +77,12 @@ const AdviceCard = () => {
         </div>
         <div className="h-[1px] w-full bg-gray-500"></div>
       </div>
-      <div onClick={fetchNewAdvice}>
+      <div>
         <div
-          className={`{ rounded-full bg-green-400 flex flex-col items-center justify-center h-[40px] w-[40px] -mb-[20px]`}
+          className={`{ cursor-pointer rounded-full bg-green-400 hover:drop-shadow-[0_0_15px_rgba(0,255,0,0.75)] flex flex-col items-center justify-center h-[40px] w-[40px] -mb-[20px] `}
         >
           <div
+            onClick={fetchNewAdvice}
             className={`${
               spin ? "animate-spin rounded-full" : "rounded-sm"
             } bg-black w-1/2 h-[50%]  flex flex-col`}
