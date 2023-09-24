@@ -34,6 +34,10 @@ const AdviceCard = ({ freshAdvice }) => {
     }
   }, []);
 
+  if(!advice){
+    return null
+  }
+
   const activateSpin = () => {
     setSpin(true);
     getAdvice();
